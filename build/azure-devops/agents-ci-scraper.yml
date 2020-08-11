@@ -113,12 +113,14 @@ stages:
         - template: ./../templates/build-scraper-image.yml
           parameters:
              imageName: '$(Image.TaggedName)'
+             buildArgs: '--build-arg VERSION="$(App.Version)"'
              tags: '--tag promitor-agent-scraper-ci'
              os: '$(OS.Name)'
      - ${{ if eq(variables['Build.Reason'], 'PullRequest') }}:
         - template: ./../templates/build-scraper-image.yml
           parameters:
              imageName: '$(Image.TaggedName)'
+             buildArgs: '--build-arg VERSION="$(App.Version)"'
              tags: '--tag promitor-agent-scraper-ci --tag $(Image.TaggedName.OSAgnostic)'
              os: '$(OS.Name)'
      - template: ./../templates/run-scraper-image.yml
@@ -152,13 +154,13 @@ stages:
         - template: ./../templates/build-scraper-image.yml
           parameters:
              imageName: '$(Image.TaggedName)'
-             buildArgs: '--build-arg CONFIG_FOLDER="c:/config/"'
+             buildArgs: '--build-arg CONFIG_FOLDER="c:/config/" VERSION="$(App.Version)"'
              tags: '--tag promitor-agent-scraper-ci --tag promitor-agent-scraper-ci-non-pr'
              os: '$(OS.Name)'
      - template: ./../templates/build-scraper-image.yml
        parameters:
           imageName: '$(Image.TaggedName)'
-          buildArgs: '--build-arg CONFIG_FOLDER="c:/config/"'
+          buildArgs: '--build-arg CONFIG_FOLDER="c:/config/" VERSION="$(App.Version)"'
           tags: '--tag promitor-agent-scraper-ci'
           os: '$(OS.Name)'
      - template: ./../templates/run-scraper-image.yml

@@ -1,10 +1,11 @@
 FROM mcr.microsoft.com/dotnet/core/sdk:3.1.302 AS build
 WORKDIR /src
+ARG VERSION="UNSET-VERSION"
 COPY Promitor.Agents.ResourceDiscovery/* Promitor.Agents.ResourceDiscovery/
 COPY Promitor.Core.Contracts/* Promitor.Core.Contracts/
 COPY Promitor.Agents.Core/* Promitor.Agents.Core/
 COPY Promitor.Core/* Promitor.Core/
-RUN dotnet publish Promitor.Agents.ResourceDiscovery/Promitor.Agents.ResourceDiscovery.csproj --configuration release --output /app
+RUN dotnet publish Promitor.Agents.ResourceDiscovery/Promitor.Agents.ResourceDiscovery.csproj --configuration release --output /app /p:Version=$VERSION
 
 FROM mcr.microsoft.com/dotnet/core/aspnet:3.1.6 AS runtime
 WORKDIR /app
