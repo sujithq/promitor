@@ -2,6 +2,8 @@ parameters:
   imageName: ''
   containerName: ''
   containerPort: ''
+  activeDirectoryAppId: ''
+  activeDirectoryAppSecret: ''
   volumes: 'promitor-ci'
   os: ''
 
@@ -27,6 +29,15 @@ steps:
       echo "##vso[task.logissue type=error;]Missing template parameter \"volumes\""
       echo "##vso[task.complete result=Failed;]"
     fi
+    echo "Variable 'activeDirectoryAppId' found with value '$APP_ID'"
+    if [ -z "$APP_ID" ]; then
+      echo "##vso[task.logissue type=error;]Missing template parameter \"activeDirectoryAppId\""
+      echo "##vso[task.complete result=Failed;]"
+    fi
+    if [ -z "$APP_SECRET" ]; then
+      echo "##vso[task.logissue type=error;]Missing template parameter \"activeDirectoryAppSecret\""
+      echo "##vso[task.complete result=Failed;]"
+    fi
     echo "Variable 'os' found with value '$OS'"
     if [ -z "$OS" ]; then
       echo "##vso[task.logissue type=error;]Missing template parameter \"os\""
@@ -37,11 +48,13 @@ steps:
     CONTAINER_NAME: ${{ parameters.containerName }}
     CONTAINER_PORT: ${{ parameters.containerPort }}
     VOLUMES: ${{ parameters.volumes }}
+    APP_ID: ${{ parameters.activeDirectoryAppId }}
+    APP_SECRET: ${{ parameters.activeDirectoryAppSecret }}
     OS: ${{ parameters.os }}
   displayName: Check for required parameters in YAML template
 - script: |
       echo Mounting volumes: ${{ parameters.volumes }}
-      docker run -d -p ${{ parameters.containerPort }}:88 --name ${{ parameters.containerName }} --env PROMITOR_AUTH_APPID=$(Container.Env.AzureMonitor.Id) --env PROMITOR_AUTH_APPKEY=$(Container.Env.AzureMonitor.Key) --volume ${{ parameters.volumes }} ${{ parameters.imageName }}
+      docker run -d -p ${{ parameters.containerPort }}:88 --name ${{ parameters.containerName }} --env PROMITOR_AUTH_APPID=${{ parameters.activeDirectoryAppId }} --env PROMITOR_AUTH_APPKEY=${{ parameters.activeDirectoryAppSecret }} --volume ${{ parameters.volumes }} ${{ parameters.imageName }}
       sleep 10
       docker logs ${{ parameters.containerName }}
   displayName: Run Scraper image as ${{ parameters.containerName }} container on ${{ parameters.os }}

@@ -24,8 +24,14 @@ variables:
     value: 'promitor-agent-scraper'
   - name: Helm.Chart.CI.Name
     value: 'promitor-agent-scraper-ci'
-  - name: Container.Name
+  - name: Container.Scraper.Name
     value: 'promitor-scraper-agent'
+  - name: Container.ResourceDiscovery.Name
+    value: 'promitor.agents.resourcediscovery'
+  - name: Container.ResourceDiscovery.Port
+    value: '88'
+  - name: Image.ResourceDiscovery.Name
+    value: 'local/promitor-resource-discovery:dev'
 stages:
 - stage: Init
   displayName: Prepare Build
@@ -94,8 +100,11 @@ stages:
   displayName: Docker Image
   dependsOn: [Init]
   variables:
-    Tags.PR: '$(App.Version)-$(OS.Name)'
-    Container.Port: 8999
+  - group: 'Agent Authentication'
+  - name: Tags.PR
+    value: '$(App.Version)-$(OS.Name)'
+  - name: Container.Scraper.Port
+    value: 8999
   jobs:
    - job: DockerBuildLinux
      displayName: Build Docker Image (Linux)
@@ -105,7 +114,7 @@ stages:
      variables:
        Agent.ResourceDiscovery.BaseUrl: NOTUSED
        Agent.ResourceDiscovery.Version: NOTUSED
-       Agent.Scraper.BaseUrl: http://localhost:$(Container.Port)
+       Agent.Scraper.BaseUrl: http://localhost:$(Container.Scraper.Port)
        Agent.Scraper.Version: $(App.Version)
        Image.TaggedName.OSAgnostic: '$(Image.Name):$(App.Version)'
        Tags.Experimental: 'experimental-$(OS.Name)'
@@ -130,12 +139,29 @@ stages:
              tags: '--tag promitor-agent-scraper-ci --tag $(Image.TaggedName.OSAgnostic)'
              buildArgs: '--build-arg VERSION="$(App.Version)"'
              os: '$(OS.Name)'
+     - template: templates/build-discovery-image.yml
+       parameters:
+          imageName: '$(Image.ResourceDiscovery.Name)'
+          tags: '--tag dev'
+          buildArgs: '--build-arg VERSION="$(App.Version)"'
+          os: '$(OS.Name)'
      - template: templates/run-scraper-image.yml
        parameters:
-          containerName: '$(Container.Name)'
-          containerPort: '$(Container.Port)'
+          containerName: '$(Container.Scraper.Name)'
+          containerPort: '$(Container.Scraper.Port)'
           imageName: '$(Image.TaggedName)'
           volumes: '$(Pipeline.Workspace)/s/config/promitor/scraper/runtime.yaml:/config/runtime.yaml --volume $(Pipeline.Workspace)/s/config/promitor/scraper/metrics.yaml:/config/metrics-declaration.yaml'
+          activeDirectoryAppId: '$(Agent.Scraper.Auth.AppId)'
+          activeDirectoryAppSecret: '$(Agent.Scraper.Auth.AppSecret)'
+          os: '$(OS.Name)'
+     - template: templates/run-discovery-image.yml
+       parameters:
+          imageName: '$(Image.ResourceDiscovery.Name)'
+          containerName: '$(Container.ResourceDiscovery.Name)'
+          containerPort: '$(Container.ResourceDiscovery.Port)'
+          volumes: '$(Pipeline.Workspace)/s/config/promitor/resource-discovery/:/config/'
+          activeDirectoryAppId: '$(Agent.ResourceDiscovery.Auth.AppId)'
+          activeDirectoryAppSecret: '$(Agent.ResourceDiscovery.Auth.AppSecret)'
           os: '$(OS.Name)'
      - template: templates/run-integration-tests.yml
        parameters:
@@ -144,7 +170,10 @@ stages:
         buildConfiguration: '$(DotNet.Configuration)'
      - template: ./templates/docker/show-container-logs.yml
        parameters:
-        containerName: '$(Container.Name)'
+        containerName: '$(Container.Scraper.Name)'
+     - template: ./templates/docker/show-container-logs.yml
+       parameters:
+        containerName: '$(Container.ResourceDiscovery.Name)'
      - ${{ if eq(variables['Build.Reason'], 'PullRequest') }}:
         - template: templates/push-docker-image.yml
           parameters:
@@ -161,7 +190,7 @@ stages:
        OS.Name: 'windows'
        Agent.ResourceDiscovery.BaseUrl: NOTUSED
        Agent.ResourceDiscovery.Version: NOTUSED
-       Agent.Scraper.BaseUrl: http://localhost:$(Container.Port)
+       Agent.Scraper.BaseUrl: http://localhost:$(Container.Scraper.Port)
        Agent.Scraper.Version: $(App.Version)
      steps:
      - download: current
@@ -178,6 +207,12 @@ stages:
              buildArgs: '--build-arg CONFIG_FOLDER="c:/config/" --build-arg VERSION="$(App.Version)"'
              tags: '--tag promitor-agent-scraper-ci --tag promitor-agent-scraper-ci-non-pr'
              os: '$(OS.Name)'
+     - template: templates/build-discovery-image.yml
+       parameters:
+          imageName: '$(Image.ResourceDiscovery.Name)'
+          tags: '--tag dev'
+          buildArgs: '--build-arg CONFIG_FOLDER="c:/config/" --build-arg VERSION="$(App.Version)"'
+          os: '$(OS.Name)'
      - template: templates/build-scraper-image.yml
        parameters:
           imageName: '$(Image.TaggedName)'
@@ -186,10 +221,21 @@ stages:
           os: '$(OS.Name)'
      - template: templates/run-scraper-image.yml
        parameters:
-          containerName: '$(Container.Name)'
-          containerPort: '$(Container.Port)'
+          containerName: '$(Container.Scraper.Name)'
+          containerPort: '$(Container.Scraper.Port)'
           imageName: '$(Image.TaggedName)'
           volumes: '$(System.DefaultWorkingDirectory)\config\promitor\scraper\:c:\config'
+          activeDirectoryAppId: '$(Agent.Scraper.Auth.AppId)'
+          activeDirectoryAppSecret: '$(Agent.Scraper.Auth.AppSecret)'
+          os: '$(OS.Name)'
+     - template: templates/run-discovery-image.yml
+       parameters:
+          imageName: '$(Image.ResourceDiscovery.Name)'
+          containerName: '$(Container.ResourceDiscovery.Name)'
+          containerPort: '$(Container.ResourceDiscovery.Port)'
+          volumes: '$(Pipeline.Workspace)\config\promitor\resource-discovery\:c:\config'
+          activeDirectoryAppId: '$(Agent.ResourceDiscovery.Auth.AppId)'
+          activeDirectoryAppSecret: '$(Agent.ResourceDiscovery.Auth.AppSecret)'
           os: '$(OS.Name)'
      - template: templates/run-integration-tests.yml
        parameters:
@@ -198,7 +244,10 @@ stages:
         buildConfiguration: '$(DotNet.Configuration)'
      - template: ./templates/docker/show-container-logs.yml
        parameters:
-        containerName: '$(Container.Name)'
+        containerName: '$(Container.Scraper.Name)'
+     - template: ./templates/docker/show-container-logs.yml
+       parameters:
+        containerName: '$(Container.ResourceDiscovery.Name)'
      - ${{ if eq(variables['Build.Reason'], 'PullRequest') }}:
         - template: templates/push-docker-image.yml
           parameters:

@@ -87,15 +87,21 @@ stages:
   displayName: Docker Image
   dependsOn: [Init]
   variables:
-    Image.TaggedName.OSAgnostic: '$(Image.Name):$(App.Version)'
-    Tags.PR: '$(App.Version)-$(OS.Name)'
-    Container.Port: 8888
-    Agent.ResourceDiscovery.BaseUrl: http://localhost:$(Container.Port)
-    Agent.ResourceDiscovery.Version: $(App.Version)
-    Agent.Scraper.BaseUrl: NOTUSED
-    Agent.Scraper.Version: NOTUSED
-    Agent.Auth.AppId: 67882a00-21d3-4ee7-b32a-430ea0768cd3
-    # Agent.Auth.AppSecret is added on the pipeline config
+  - group: 'Agent Authentication'
+  - name: Image.TaggedName.OSAgnostic
+    value: '$(Image.Name):$(App.Version)'
+  - name: Tags.PR
+    value: '$(App.Version)-$(OS.Name)'
+  - name: Container.Port
+    value: 8888
+  - name: Agent.ResourceDiscovery.BaseUrl
+    value: http://localhost:$(Container.Port)
+  - name: Agent.ResourceDiscovery.Version
+    value: $(App.Version)
+  - name: Agent.Scraper.BaseUrl
+    value: NOTUSED
+  - name: Agent.Scraper.Version
+    value: NOTUSED
   jobs:
    - job: DockerBuildLinux
      displayName: Build Docker Image (Linux)
@@ -131,8 +137,8 @@ stages:
           containerName: '$(Container.Name)'
           containerPort: '$(Container.Port)'
           volumes: '$(Pipeline.Workspace)/s/config/promitor/resource-discovery/:/config/'
-          discoveryAppId: '$(Agent.Auth.AppId)'
-          discoveryAppSecret: '$(Agent.Auth.AppSecret)'
+          activeDirectoryAppId: '$(Agent.ResourceDiscovery.Auth.AppId)'
+          activeDirectoryAppSecret: '$(Agent.ResourceDiscovery.Auth.AppSecret)'
           os: '$(OS.Name)'
      - template: templates/run-integration-tests.yml
        parameters:
@@ -189,8 +195,8 @@ stages:
           containerName: '$(Container.Name)'
           containerPort: '$(Container.Port)'
           volumes: '$(System.DefaultWorkingDirectory)\config\promitor\resource-discovery\:c:\config\'
-          discoveryAppId: '$(Agent.Auth.AppId)'
-          discoveryAppSecret: '$(Agent.Auth.AppSecret)'
+          activeDirectoryAppId: '$(Agent.ResourceDiscovery.Auth.AppId)'
+          activeDirectoryAppSecret: '$(Agent.ResourceDiscovery.Auth.AppSecret)'
           os: '$(OS.Name)'
      - template: templates/run-integration-tests.yml
        parameters:
