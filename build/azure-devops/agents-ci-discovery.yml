@@ -1,4 +1,4 @@
-name: 0.0.0-$(Date:yyyyMMdd)$(Rev:.r)
+name: 0.0.0-$(Date:yyyyMMdd)$(Rev:r)
 resources:
 - repo: self
 trigger:
@@ -30,8 +30,8 @@ stages:
        vmImage: ubuntu-16.04
      steps:
      - ${{ if eq(variables['Build.Reason'], 'PullRequest') }}:
-        - template: ./../templates/determine-pr-version.yml
-     - template: ./../templates/persist-variable.yml
+        - template: templates/determine-pr-version.yml
+     - template: templates/persist-variable.yml
        parameters:
         currentVariableName: 'Build.BuildNumber'
         persistedVariableName: 'App.Version'
@@ -46,7 +46,7 @@ stages:
      pool:
        vmImage: ubuntu-16.04
      steps:
-     - template: ./../templates/build-solution.yml
+     - template: templates/build-solution.yml
        parameters:
         dotnetVersion: '$(DotNet.SDK.Version)'
         buildConfiguration: '$(DotNet.Configuration)'
@@ -66,7 +66,7 @@ stages:
      pool:
        vmImage: windows-2019
      steps:
-     - template: ./../templates/run-code-quality.yml
+     - template: templates/run-code-quality.yml
        parameters:
         dotnetVersion: '$(DotNet.Sdk.Version)'
 - stage: Test
@@ -79,7 +79,7 @@ stages:
      pool:
        vmImage: ubuntu-16.04
      steps:
-     - template: ./../templates/run-unit-tests.yml
+     - template: templates/run-unit-tests.yml
        parameters:
         dotnetVersion: '$(DotNet.Sdk.Version)'
         buildConfiguration: '$(DotNet.Configuration)'
@@ -108,24 +108,24 @@ stages:
      steps:
      - download: current
        artifact: variables
-     - template: ./../templates/read-variable-on-linux.yml
+     - template: templates/read-variable-on-linux.yml
        parameters:
         variableName: 'App.Version'
      - ${{ if not(eq(variables['Build.Reason'], 'PullRequest')) }}:
-        - template: ./../templates/build-discovery-image.yml
+        - template: templates/build-discovery-image.yml
           parameters:
              imageName: '$(Image.TaggedName)'
              tags: '--tag promitor-agent-discovery-ci'
              buildArgs: '--build-arg VERSION="$(App.Version)"'
              os: '$(OS.Name)'
      - ${{ if eq(variables['Build.Reason'], 'PullRequest') }}:
-        - template: ./../templates/build-discovery-image.yml
+        - template: templates/build-discovery-image.yml
           parameters:
              imageName: '$(Image.TaggedName)'
              tags: '--tag promitor-agent-discovery-ci --tag $(Image.TaggedName.OSAgnostic)'
              buildArgs: '--build-arg VERSION="$(App.Version)"'
              os: '$(OS.Name)'
-     - template: ./../templates/run-discovery-image.yml
+     - template: templates/run-discovery-image.yml
        parameters:
           imageName: '$(Image.TaggedName)'
           containerName: '$(Container.Name)'
@@ -134,7 +134,7 @@ stages:
           discoveryAppId: '$(Agent.Auth.AppId)'
           discoveryAppSecret: '$(Agent.Auth.AppSecret)'
           os: '$(OS.Name)'
-     - template: ./../templates/run-integration-tests.yml
+     - template: templates/run-integration-tests.yml
        parameters:
         agentName: 'Resource Discovery'
         dotnetVersion: '$(DotNet.Sdk.Version)'
@@ -148,10 +148,10 @@ stages:
        displayName: Show $(Container.Name) logs
        condition: always()
      - ${{ if eq(variables['Build.Reason'], 'PullRequest') }}:
-        - template: ./../templates/push-docker-image.yml
+        - template: templates/push-docker-image.yml
           parameters:
               imageName: '$(Image.TaggedName)'
-        - template: ./../templates/push-docker-image.yml
+        - template: templates/push-docker-image.yml
           parameters:
               imageName: '$(Image.TaggedName.OSAgnostic)'
    - job: DockerBuildWindows
@@ -164,26 +164,26 @@ stages:
      steps:
      - download: current
        artifact: variables
-     - template: ./../templates/read-variable-on-windows.yml
+     - template: templates/read-variable-on-windows.yml
        parameters:
         variableName: 'App.Version'
      - ${{ if eq(variables['Build.Reason'], 'PullRequest') }}:
-        - template: ./../templates/determine-pr-version.yml
+        - template: templates/determine-pr-version.yml
      - ${{ if not(eq(variables['Build.Reason'], 'PullRequest')) }}:
-        - template: ./../templates/build-discovery-image.yml
+        - template: templates/build-discovery-image.yml
           parameters:
              imageName: '$(Image.TaggedName)'
              buildArgs: '--build-arg CONFIG_FOLDER="c:/config/" --build-arg VERSION="$(App.Version)"'
              tags: '--tag promitor-agent-discovery-ci'
              os: '$(OS.Name)'
      - ${{ if eq(variables['Build.Reason'], 'PullRequest') }}:
-        - template: ./../templates/build-discovery-image.yml
+        - template: templates/build-discovery-image.yml
           parameters:
              imageName: '$(Image.TaggedName)'
              tags: '--tag promitor-agent-discovery-ci --tag $(Image.TaggedName.OSAgnostic)'
              buildArgs: '--build-arg CONFIG_FOLDER="c:/config/" --build-arg VERSION="$(App.Version)"'
              os: '$(OS.Name)'
-     - template: ./../templates/run-discovery-image.yml
+     - template: templates/run-discovery-image.yml
        parameters:
           imageName: '$(Image.TaggedName)'
           containerName: '$(Container.Name)'
@@ -192,19 +192,14 @@ stages:
           discoveryAppId: '$(Agent.Auth.AppId)'
           discoveryAppSecret: '$(Agent.Auth.AppSecret)'
           os: '$(OS.Name)'
-     - template: ./../templates/run-integration-tests.yml
+     - template: templates/run-integration-tests.yml
        parameters:
         dotnetVersion: '$(DotNet.Sdk.Version)'
         buildConfiguration: '$(DotNet.Configuration)'
-     - task: PowerShell@2
-       displayName: Show $(Container.Name) logs
-       inputs:
-         targetType: 'inline'
-         script: |
-           docker logs $(Container.Name)
-         failOnStderr: true
-       condition: always()
+     - template: templates/docker/show-container-logs.yml
+       parameters:
+        containerName: '$(Container.Name)'
      - ${{ if eq(variables['Build.Reason'], 'PullRequest') }}:
-        - template: ./../templates/push-docker-image.yml
+        - template: templates/push-docker-image.yml
           parameters:
               imageName: '$(Image.TaggedName)'

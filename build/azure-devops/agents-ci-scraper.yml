@@ -1,4 +1,4 @@
-name: 0.0.0-$(Date:yyyyMMdd)$(Rev:.r)
+name: 0.0.0-$(Date:yyyyMMdd)$(Rev:r)
 resources:
 - repo: self
 trigger:
@@ -37,8 +37,8 @@ stages:
        vmImage: ubuntu-16.04
      steps:
      - ${{ if eq(variables['Build.Reason'], 'PullRequest') }}:
-        - template: ./../templates/determine-pr-version.yml
-     - template: ./../templates/persist-variable.yml
+        - template: templates/determine-pr-version.yml
+     - template: templates/persist-variable.yml
        parameters:
         currentVariableName: 'Build.BuildNumber'
         persistedVariableName: 'App.Version'
@@ -53,7 +53,7 @@ stages:
      pool:
        vmImage: ubuntu-16.04
      steps:
-     - template: ./../templates/build-solution.yml
+     - template: templates/build-solution.yml
        parameters:
         dotnetVersion: '$(DotNet.SDK.Version)'
         buildConfiguration: '$(DotNet.Configuration)'
@@ -73,7 +73,7 @@ stages:
      pool:
        vmImage: windows-2019
      steps:
-     - template: ./../templates/run-code-quality.yml
+     - template: templates/run-code-quality.yml
        parameters:
         dotnetVersion: '$(DotNet.Sdk.Version)'
 - stage: Test
@@ -86,7 +86,7 @@ stages:
      pool:
        vmImage: ubuntu-16.04
      steps:
-     - template: ./../templates/run-unit-tests.yml
+     - template: templates/run-unit-tests.yml
        parameters:
         dotnetVersion: '$(DotNet.Sdk.Version)'
         buildConfiguration: '$(DotNet.Configuration)'
@@ -113,31 +113,31 @@ stages:
      steps:
      - download: current
        artifact: variables
-     - template: ./../templates/read-variable-on-linux.yml
+     - template: templates/read-variable-on-linux.yml
        parameters:
         variableName: 'App.Version'
      - ${{ if not(eq(variables['Build.Reason'], 'PullRequest')) }}:
-        - template: ./../templates/build-scraper-image.yml
+        - template: templates/build-scraper-image.yml
           parameters:
              imageName: '$(Image.TaggedName)'
              tags: '--tag promitor-agent-scraper-ci'
              buildArgs: '--build-arg VERSION="$(App.Version)"'
              os: '$(OS.Name)'
      - ${{ if eq(variables['Build.Reason'], 'PullRequest') }}:
-        - template: ./../templates/build-scraper-image.yml
+        - template: templates/build-scraper-image.yml
           parameters:
              imageName: '$(Image.TaggedName)'
              tags: '--tag promitor-agent-scraper-ci --tag $(Image.TaggedName.OSAgnostic)'
              buildArgs: '--build-arg VERSION="$(App.Version)"'
              os: '$(OS.Name)'
-     - template: ./../templates/run-scraper-image.yml
+     - template: templates/run-scraper-image.yml
        parameters:
           containerName: '$(Container.Name)'
           containerPort: '$(Container.Port)'
           imageName: '$(Image.TaggedName)'
           volumes: '/src/metrics.yaml:/config/metrics-declaration.yaml promitor-agent-scraper-ci'
           os: '$(OS.Name)'
-     - template: ./../templates/run-integration-tests.yml
+     - template: templates/run-integration-tests.yml
        parameters:
         agentName: 'Scraper'
         dotnetVersion: '$(DotNet.Sdk.Version)'
@@ -146,10 +146,10 @@ stages:
        parameters:
         containerName: '$(Container.Name)'
      - ${{ if eq(variables['Build.Reason'], 'PullRequest') }}:
-        - template: ./../templates/push-docker-image.yml
+        - template: templates/push-docker-image.yml
           parameters:
               imageName: '$(Image.TaggedName)'
-        - template: ./../templates/push-docker-image.yml
+        - template: templates/push-docker-image.yml
           parameters:
               imageName: '$(Image.TaggedName.OSAgnostic)'
    - job: DockerBuildWindows
@@ -166,32 +166,32 @@ stages:
      steps:
      - download: current
        artifact: variables
-     - template: ./../templates/read-variable-on-windows.yml
+     - template: templates/read-variable-on-windows.yml
        parameters:
         variableName: 'App.Version'
      - ${{ if eq(variables['Build.Reason'], 'PullRequest') }}:
-        - template: ./../templates/determine-pr-version.yml
+        - template: templates/determine-pr-version.yml
      - ${{ if not(eq(variables['Build.Reason'], 'PullRequest')) }}:
-        - template: ./../templates/build-scraper-image.yml
+        - template: templates/build-scraper-image.yml
           parameters:
              imageName: '$(Image.TaggedName)'
              buildArgs: '--build-arg CONFIG_FOLDER="c:/config/" --build-arg VERSION="$(App.Version)"'
              tags: '--tag promitor-agent-scraper-ci --tag promitor-agent-scraper-ci-non-pr'
              os: '$(OS.Name)'
-     - template: ./../templates/build-scraper-image.yml
+     - template: templates/build-scraper-image.yml
        parameters:
           imageName: '$(Image.TaggedName)'
           buildArgs: '--build-arg CONFIG_FOLDER="c:/config/" --build-arg VERSION="$(App.Version)"'
           tags: '--tag promitor-agent-scraper-ci'
           os: '$(OS.Name)'
-     - template: ./../templates/run-scraper-image.yml
+     - template: templates/run-scraper-image.yml
        parameters:
           containerName: '$(Container.Name)'
           containerPort: '$(Container.Port)'
           imageName: '$(Image.TaggedName)'
           volumes: '$(System.DefaultWorkingDirectory)\src:c:\config promitor-agent-scraper-ci'
           os: '$(OS.Name)'
-     - template: ./../templates/run-integration-tests.yml
+     - template: templates/run-integration-tests.yml
        parameters:
         agentName: 'Scraper'
         dotnetVersion: '$(DotNet.Sdk.Version)'
@@ -200,7 +200,7 @@ stages:
        parameters:
         containerName: '$(Container.Name)'
      - ${{ if eq(variables['Build.Reason'], 'PullRequest') }}:
-        - template: ./../templates/push-docker-image.yml
+        - template: templates/push-docker-image.yml
           parameters:
               imageName: '$(Image.TaggedName)'
 - stage: Helm2
@@ -233,7 +233,7 @@ stages:
      steps:
      - download: current
        artifact: variables
-     - template: ./../templates/read-variable-on-linux.yml
+     - template: templates/read-variable-on-linux.yml
        parameters:
         variableName: 'App.Version'
      - template: ./templates/lint-helm-chart.yml
