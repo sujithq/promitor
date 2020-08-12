@@ -52,18 +52,3 @@ If release name contains chart name it will be used as a full name.
 {{- printf "%s" .Values.rbac.serviceAccount.name -}}
 {{- end -}}
 {{- end -}}
-
-{{/*
-    Define the tag of the image
-*/}}
-{{- define "promitor-agent-scraper.imageTag" -}}
-{{- default (include "promitor-agent-scraper.fullname" .) .Values.image.tag }}
-{{- if .Values.image.tag }}
-{{- .Values.image.tag }}
-{{- else }}
-{{- if contains $name .Release.Name }}
-{{- .Release.Name | trunc 63 | trimSuffix "-" }}
-{{- else }}
-{{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" }}
-{{- end }}
-{{- end }}
