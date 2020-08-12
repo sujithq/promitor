@@ -150,7 +150,7 @@ stages:
           containerName: '$(Container.Scraper.Name)'
           containerPort: '$(Container.Scraper.Port)'
           imageName: '$(Image.TaggedName)'
-          volumes: '$(Pipeline.Workspace)/s/config/promitor/scraper/runtime.yaml:/config/runtime-ci.yaml --volume $(Pipeline.Workspace)/s/config/promitor/scraper/metrics.yaml:/config/metrics-declaration.yaml'
+          volumes: '$(Pipeline.Workspace)/s/config/promitor/scraper/runtime-ci.yaml:/config/runtime.yaml --volume $(Pipeline.Workspace)/s/config/promitor/scraper/metrics.yaml:/config/metrics-declaration.yaml'
           activeDirectoryAppId: '$(Agent.Scraper.Auth.AppId)'
           activeDirectoryAppSecret: '$(Agent.Scraper.Auth.AppSecret)'
           os: '$(OS.Name)'
