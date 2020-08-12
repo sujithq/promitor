@@ -41,7 +41,7 @@ steps:
   displayName: Check for required parameters in YAML template
 - script: |
       echo Mounting volumes: ${{ parameters.volumes }}
-      docker run -d -p ${{ parameters.containerPort }}:88 --name ${{ parameters.containerName }} --env PROMITOR_AUTH_APPID=$(Container.Env.AzureMonitor.Id) --env DISCOVERY_APPSECRET=$(Container.Env.AzureMonitor.Key) --volume ${{ parameters.volumes }} ${{ parameters.imageName }}
+      docker run -d -p ${{ parameters.containerPort }}:88 --name ${{ parameters.containerName }} --env PROMITOR_AUTH_APPID=$(Container.Env.AzureMonitor.Id) --env PROMITOR_AUTH_APPKEY=$(Container.Env.AzureMonitor.Key) --volume ${{ parameters.volumes }} ${{ parameters.imageName }}
       sleep 10
       docker logs ${{ parameters.containerName }}
   displayName: Run Scraper image as ${{ parameters.containerName }} container on ${{ parameters.os }}
