@@ -39,16 +39,10 @@ steps:
     VOLUMES: ${{ parameters.volumes }}
     OS: ${{ parameters.os }}
   displayName: Check for required parameters in YAML template
-- task: Docker@1
-  displayName: 'Run Scraper image as ''${{ parameters.containerName }}'' container on ${{ parameters.os }}'
-  inputs:
-    containerregistrytype: 'Container Registry'
-    dockerRegistryEndpoint: 'Docker Hub'
-    command: 'Run an image'
-    imageName: '${{ parameters.imageName }}'
-    containerName: '${{ parameters.containerName }}'
-    ports: '${{ parameters.containerPort }}:80'
-    volumes: '${{ parameters.volumes }}'
-    envVars: |
-     PROMITOR_AUTH_APPID='$(Container.Env.AzureMonitor.Id)'
-     PROMITOR_AUTH_APPKEY='$(Container.Env.AzureMonitor.Key)'
+- script: |
+      echo Mounting volumes: ${{ parameters.volumes }}
+      docker run -d -p ${{ parameters.containerPort }}:88 --name ${{ parameters.containerName }} --env PROMITOR_AUTH_APPID=$(Container.Env.AzureMonitor.Id) --env DISCOVERY_APPSECRET=$(Container.Env.AzureMonitor.Key) --volume ${{ parameters.volumes }} ${{ parameters.imageName }}
+      sleep 10
+      docker logs ${{ parameters.containerName }}
+  displayName: Run Scraper image as ${{ parameters.containerName }} container on ${{ parameters.os }}
+  failOnStderr: true
