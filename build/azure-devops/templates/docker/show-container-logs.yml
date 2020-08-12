@@ -1,0 +1,14 @@
+parameters:
+- name: containerName
+  displayName: Container Name
+  type: string 
+
+steps:
+- task: PowerShell@2
+  displayName: Show $ {{ parameters.containerName }} logs
+  inputs:
+    targetType: 'inline'
+    script: |
+      docker logs $ {{ parameters.containerName }}
+    failOnStderr: true
+  condition: always()
