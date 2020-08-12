@@ -91,6 +91,9 @@ stages:
     Tags.PR: '$(App.Version)-$(OS.Name)'
     Container.Port: 8888
     Agent.ResourceDiscovery.BaseUrl: http://localhost:$(Container.Port)
+    Agent.ResourceDiscovery.Version: $(App.Version)
+    Agent.Scraper.BaseUrl: NOTUSED
+    Agent.Scraper.Version: NOTUSED
     Agent.Auth.AppId: 67882a00-21d3-4ee7-b32a-430ea0768cd3
     # Agent.Auth.AppSecret is added on the pipeline config
   jobs:
@@ -131,6 +134,7 @@ stages:
           os: '$(OS.Name)'
      - template: ./../templates/run-integration-tests.yml
        parameters:
+        agentName: 'Resource Discovery'
         dotnetVersion: '$(DotNet.Sdk.Version)'
         buildConfiguration: '$(DotNet.Configuration)'
      - task: Bash@3

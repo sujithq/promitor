@@ -1,6 +1,7 @@
 parameters:
   imageName: ''
   containerName: 'promitor-ci'
+  containerPort: ''
   volumes: 'promitor-ci'
   os: ''
 
@@ -16,6 +17,11 @@ steps:
       echo "##vso[task.logissue type=error;]Missing template parameter \"containerName\""
       echo "##vso[task.complete result=Failed;]"
     fi
+    echo "Variable 'containerPort' found with value '$CONTAINER_PORT'"
+    if [ -z "$CONTAINER_PORT" ]; then
+      echo "##vso[task.logissue type=error;]Missing template parameter \"containerPort\""
+      echo "##vso[task.complete result=Failed;]"
+    fi
     echo "Variable 'volumes' found with value '$VOLUMES'"
     if [ -z "$VOLUMES" ]; then
       echo "##vso[task.logissue type=error;]Missing template parameter \"volumes\""
@@ -29,6 +35,7 @@ steps:
   env:
     IMAGE_NAME: ${{ parameters.imageName }}
     CONTAINER_NAME: ${{ parameters.containerName }}
+    CONTAINER_PORT: ${{ parameters.containerPort }}
     VOLUMES: ${{ parameters.volumes }}
     OS: ${{ parameters.os }}
   displayName: Check for required parameters in YAML template
@@ -40,7 +47,7 @@ steps:
     command: 'Run an image'
     imageName: '${{ parameters.imageName }}'
     containerName: '${{ parameters.containerName }}'
-    ports: '8999:80'
+    ports: '${{ parameters.containerPort }}:80'
     volumes: '${{ parameters.volumes }}'
     envVars: |
      PROMITOR_AUTH_APPID='$(Container.Env.AzureMonitor.Id)'

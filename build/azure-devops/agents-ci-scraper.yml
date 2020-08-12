@@ -93,6 +93,7 @@ stages:
   dependsOn: [Init]
   variables:
     Tags.PR: '$(App.Version)-$(OS.Name)'
+    Container.Port: 8999
   jobs:
    - job: DockerBuildLinux
      displayName: Build Docker Image (Linux)
@@ -100,6 +101,10 @@ stages:
      pool:
        vmImage: ubuntu-16.04
      variables:
+       Agent.ResourceDiscovery.BaseUrl: NOTUSED
+       Agent.ResourceDiscovery.Version: NOTUSED
+       Agent.Scraper.BaseUrl: http://localhost:$(Container.Port)
+       Agent.Scraper.Version: $(App.Version)
        Image.TaggedName.OSAgnostic: '$(Image.Name):$(App.Version)'
        Tags.Experimental: 'experimental-$(OS.Name)'
        OS.Name: 'linux'
@@ -126,8 +131,14 @@ stages:
      - template: ./../templates/run-scraper-image.yml
        parameters:
           volumes: '/src/metrics.yaml:/config/metrics-declaration.yaml promitor-agent-scraper-ci'
+          containerPort: '$(Container.Port)'
           imageName: '$(Image.TaggedName)'
           os: '$(OS.Name)'
+     - template: ./../templates/run-integration-tests.yml
+       parameters:
+        agentName: 'Scraper'
+        dotnetVersion: '$(DotNet.Sdk.Version)'
+        buildConfiguration: '$(DotNet.Configuration)'
      - ${{ if eq(variables['Build.Reason'], 'PullRequest') }}:
         - template: ./../templates/push-docker-image.yml
           parameters:
@@ -142,6 +153,10 @@ stages:
        vmImage: windows-2019
      variables:
        OS.Name: 'windows'
+       Agent.ResourceDiscovery.BaseUrl: NOTUSED
+       Agent.ResourceDiscovery.Version: NOTUSED
+       Agent.Scraper.BaseUrl: http://localhost:$(Container.Port)
+       Agent.Scraper.Version: $(App.Version)
      steps:
      - download: current
        artifact: variables
@@ -166,8 +181,14 @@ stages:
      - template: ./../templates/run-scraper-image.yml
        parameters:
           volumes: '$(System.DefaultWorkingDirectory)\src:c:\config promitor-agent-scraper-ci'
+          containerPort: '$(Container.Port)'
           imageName: '$(Image.TaggedName)'
           os: '$(OS.Name)'
+     - template: ./../templates/run-integration-tests.yml
+       parameters:
+        agentName: 'Scraper'
+        dotnetVersion: '$(DotNet.Sdk.Version)'
+        buildConfiguration: '$(DotNet.Configuration)'
      - ${{ if eq(variables['Build.Reason'], 'PullRequest') }}:
         - template: ./../templates/push-docker-image.yml
           parameters:
