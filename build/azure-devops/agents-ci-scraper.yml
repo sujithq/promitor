@@ -1,4 +1,4 @@
-name: $(Date:yyyyMMdd)$(Rev:.r)
+name: 0.0.0-$(Date:yyyyMMdd)$(Rev:.r)
 resources:
 - repo: self
 trigger:
@@ -118,15 +118,15 @@ stages:
         - template: ./../templates/build-scraper-image.yml
           parameters:
              imageName: '$(Image.TaggedName)'
-             buildArgs: '--build-arg VERSION="$(App.Version)"'
              tags: '--tag promitor-agent-scraper-ci'
+             buildArgs: '--build-arg VERSION="$(App.Version)"'
              os: '$(OS.Name)'
      - ${{ if eq(variables['Build.Reason'], 'PullRequest') }}:
         - template: ./../templates/build-scraper-image.yml
           parameters:
              imageName: '$(Image.TaggedName)'
-             buildArgs: '--build-arg VERSION="$(App.Version)"'
              tags: '--tag promitor-agent-scraper-ci --tag $(Image.TaggedName.OSAgnostic)'
+             buildArgs: '--build-arg VERSION="$(App.Version)"'
              os: '$(OS.Name)'
      - template: ./../templates/run-scraper-image.yml
        parameters:
