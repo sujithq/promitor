@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Reflection;
 
-namespace Promitor.Agents.Core
+namespace Promitor.Core
 {
     public static class Version
     {

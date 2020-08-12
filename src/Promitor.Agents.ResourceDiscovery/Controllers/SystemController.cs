@@ -1,7 +1,7 @@
 ﻿using System.Net;
 using Microsoft.AspNetCore.Mvc;
-using Promitor.Agents.Core;
 using Promitor.Agents.Core.Contracts;
+using Promitor.Core;
 using Swashbuckle.AspNetCore.Annotations;
 
 namespace Promitor.Agents.ResourceDiscovery.Controllers
