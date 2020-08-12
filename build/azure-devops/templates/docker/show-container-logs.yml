@@ -5,10 +5,10 @@ parameters:
 
 steps:
 - task: PowerShell@2
-  displayName: Show $ {{ parameters.containerName }} logs
+  displayName: Show ${{ parameters.containerName }} logs
   inputs:
     targetType: 'inline'
     script: |
-      docker logs $ {{ parameters.containerName }}
+      docker logs ${{ parameters.containerName }}
     failOnStderr: true
   condition: always()
