@@ -135,7 +135,7 @@ stages:
           containerName: '$(Container.Name)'
           containerPort: '$(Container.Port)'
           imageName: '$(Image.TaggedName)'
-          volumes: '/config/promitor/scraper/metrics.yaml:/config/metrics-declaration.yaml --volume /config/promitor/scraper/runtime.yaml:/config/runtime.yaml'
+          volumes: '/config/promitor/scraper/runtime.yaml:/config/runtime.yaml --volume /config/promitor/scraper/metrics.yaml:/config/metrics-declaration.yaml'
           os: '$(OS.Name)'
      - template: templates/run-integration-tests.yml
        parameters:
@@ -189,7 +189,7 @@ stages:
           containerName: '$(Container.Name)'
           containerPort: '$(Container.Port)'
           imageName: '$(Image.TaggedName)'
-          volumes: '$(System.DefaultWorkingDirectory)\config\promitor\scraper\:c:\config promitor-agent-scraper-ci'
+          volumes: '$(System.DefaultWorkingDirectory)\config\promitor\scraper\:c:\config'
           os: '$(OS.Name)'
      - template: templates/run-integration-tests.yml
        parameters:
