@@ -1,11 +1,11 @@
-﻿using System.ComponentModel;
-using Arcus.Testing.Logging;
+﻿using Arcus.Testing.Logging;
 using Microsoft.Extensions.Configuration;
+using Xunit;
 using Xunit.Abstractions;
 
 namespace Promitor.Tests.Integration
 {
-    [Category("Integration")]
+    [Trait("Category", "Integration")]
     public class IntegrationTest
     {
         protected IConfiguration Configuration { get; }
