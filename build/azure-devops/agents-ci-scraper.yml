@@ -135,7 +135,7 @@ stages:
           containerName: '$(Container.Name)'
           containerPort: '$(Container.Port)'
           imageName: '$(Image.TaggedName)'
-          volumes: '/config/promitor/scraper/runtime.yaml:/config/runtime.yaml --volume /config/promitor/scraper/metrics.yaml:/config/metrics-declaration.yaml'
+          volumes: '$(Pipeline.Workspace)/s/config/promitor/scraper/runtime.yaml:/config/runtime.yaml --volume $(Pipeline.Workspace)/s/config/promitor/scraper/metrics.yaml:/config/metrics-declaration.yaml'
           os: '$(OS.Name)'
      - template: templates/run-integration-tests.yml
        parameters:
