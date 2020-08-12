@@ -1,0 +1,34 @@
+server:
+  httpPort: 88
+metricSinks:
+  prometheusScrapingEndpoint:
+    metricUnavailableValue: NaN
+    enableMetricTimestamps: true # true by default
+    baseUriPath: /metrics
+  statsd:
+    host: graphite
+    port: 8125
+    metricPrefix: promitor.
+  atlassianStatuspage:
+    pageId: y79z9b78ybgs
+    systemMetricMapping:
+    - id: nfkgnrwpn545
+      promitorMetricName: promitor_demo_appplan_percentage_cpu
+metricsConfiguration:
+  absolutePath: /config/metrics-declaration.yaml
+telemetry:
+  applicationInsights:
+    instrumentationKey: ABC
+    isEnabled: true
+    verbosity: warning
+  containerLogs:
+    isEnabled: true
+    verbosity: trace
+  defaultVerbosity: trace
+azureMonitor:
+  logging:
+    informationLevel: Headers
+    isEnabled: false
+resourceDiscovery:
+  host: localhost
+  port: 88
