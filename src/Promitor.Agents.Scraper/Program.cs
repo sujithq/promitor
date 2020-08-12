@@ -9,6 +9,8 @@ using Promitor.Agents.Core.Extensions;
 using Promitor.Agents.Core.Validation;
 using Promitor.Core;
 using Serilog;
+using Serilog.Core;
+using Constants = Promitor.Agents.Core.Constants;
 
 namespace Promitor.Agents.Scraper
 {
@@ -24,6 +26,7 @@ namespace Promitor.Agents.Scraper
                 ConfigureStartupLogging();
 
                 var configurationFolder = Environment.GetEnvironmentVariable(EnvironmentVariables.Configuration.Folder);
+                Log.Logger.Information($"Using configuration folder '{configurationFolder}'");
                 if (string.IsNullOrWhiteSpace(configurationFolder))
                 {
                     Log.Logger.Fatal($"Unable to determine the configuration folder. Please ensure that the '{EnvironmentVariables.Configuration.Folder}' environment variable is set");
