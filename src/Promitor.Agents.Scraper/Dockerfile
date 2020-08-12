@@ -16,7 +16,7 @@ RUN dotnet publish Promitor.Agents.Scraper/Promitor.Agents.Scraper.csproj --conf
 
 FROM mcr.microsoft.com/dotnet/core/aspnet:3.1.6 as runtime
 WORKDIR /app
-ARG CONFIG_FOLDER="/config/"
+ARG CONFIG_FOLDER="/config"
 ENV PROMITOR_INTERNAL_CONFIG_FOLDER=$CONFIG_FOLDER
 COPY --from=build /src/app .
 
